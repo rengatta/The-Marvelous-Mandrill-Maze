@@ -350,13 +350,19 @@ int main(int ArgCount, char** Args) {
 	uint32_t WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP;
 	SDL_Window* Window = SDL_CreateWindow("The Marvelous Mandrill Maze", WinX, WinY, WinWidth, WinHeight, WindowFlags);
 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+
 	SDL_GetWindowSize(Window, &WinWidth, &WinHeight);
 
 	projection = glm::perspective(
-		glm::radians(90.0f),			// The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+		glm::radians(90.0f),						// The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
 		(float)WinWidth / (float)WinHeight,			// Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-		0.1f,							// Near clipping plane. Keep as big as possible, or you'll get precision issues.
-		400.0f							// Far clipping plane. Keep as little as possible.
+		0.1f,										// Near clipping plane. Keep as big as possible, or you'll get precision issues.
+		400.0f										// Far clipping plane. Keep as little as possible.
 	);
 
 	//assert(Window);
