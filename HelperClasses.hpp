@@ -4,7 +4,7 @@ class BoundingBox;
 #define WAV_PATH "Roland-GR-1-Trumpet-C5.wav"
 #define MUS_PATH "HR2_Friska.ogg"
 
-int volume = MIX_MAX_VOLUME /40;
+int volume = MIX_MAX_VOLUME / 5;
 bool muted = false;
 
 void PlayMP3(std::string songPath) {
@@ -209,7 +209,7 @@ class Camera {
 
 	void mouse(float xoffset, float yoffset) {
 
-		float sensitivity = 0.1f;
+		float sensitivity = 0.2f;
 		xoffset *= sensitivity;
 		yoffset *= sensitivity;
 

@@ -20,6 +20,7 @@
 #include <functional>
 #include <map>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <shader.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <HelperClasses.hpp>
@@ -28,6 +29,7 @@
 #include <SkyBox.hpp>
 
 int WinWidth = 1000, WinHeight = 1000;
+const bool fullScreenActive = true;
 void CreateGameStage();
 Player player;
 glm::mat4 projection;
@@ -62,7 +64,7 @@ void FillShader(Object& object, LightsShader& shader) {
 	glBindTexture(GL_TEXTURE_2D, object.textureID);
 }
 
-void StoreVAO(Object& object, GLuint VAO, VBOs& vbos ) {
+void StoreVAO(Object& object, GLuint VAO, VBOs& vbos) {
 
 	glBindVertexArray(VAO);
 
@@ -82,7 +84,7 @@ void StoreVAO(Object& object, GLuint VAO, VBOs& vbos ) {
 		(void*)0
 	);
 
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbos.uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, object.indexed_uvs.size() * sizeof(glm::vec2), &object.indexed_uvs[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(
@@ -151,7 +153,7 @@ void init()
 	cubeVBOs.GenerateBuffers();
 
 	cubeTemplate = Object("mandrill_cube.obj", "mandrill_cube_map.jpg", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-	monkeyIdolTemplate = Object("suzanne.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	monkeyIdolTemplate = Object("suzanne.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
 	StoreVAO(cubeTemplate, cubeVAO, cubeVBOs);
 	StoreVAO(monkeyIdolTemplate, monkeyVAO, monkeyVBOs);
@@ -180,12 +182,13 @@ void init()
 
 }
 
-float gravity = -0.00010f;           
+float gravity = -0.00010f;
 glm::vec3 gravityVelocity(0.0f, 0.0f, 0.0f);
 bool canJump = false;
 
 void OnJumpKeyPressed()
-{	if(canJump || infiniteJumpMode) {
+{
+	if (canJump || infiniteJumpMode) {
 		gravityVelocity.y = 0.05f;
 		canJump = false;
 	}
@@ -219,7 +222,7 @@ void CreateGameStage() {
 				else if ((rand() / double(RAND_MAX) <= 0.1f)) {
 
 					lightsShader.AddPointLight(glm::vec3(i * spaceBetweenBlocks, 0.5f, j * spaceBetweenBlocks), glm::vec3(0.15f, 0.15f, 0.15f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.09, 0.032);
-					monkeyIdolObjects.emplace_back(monkeyIdolTemplate, glm::vec3(i * spaceBetweenBlocks, 0.5f, j * spaceBetweenBlocks), glm::vec3(0.5f, 1.0f, 1.0f));
+					monkeyIdolObjects.emplace_back(monkeyIdolTemplate, glm::vec3(i * spaceBetweenBlocks, 0.5f, j * spaceBetweenBlocks), glm::vec3(1.0f, 1.0f, 1.0f));
 					monkeyIdolObjects.back().pointLightIndex = lightsShader.numPointLights - 1;
 					spawnedIdols += 1;
 				}
@@ -242,7 +245,7 @@ void ResetGameStage() {
 	won = false;
 	lightsShader.numPointLights = 0;
 	CreateGameStage();
-	
+
 }
 
 void WinCondition() {
@@ -270,7 +273,7 @@ void Update(float deltaTime) {
 	for (; it != mazeObjects.end(); ++it) {
 		DrawObject(*it, lightsShader, cubeVAO);
 		if (PushBackIfIntersecting(player.collider, it->collider, newPosition, onFloor)) {
-			
+
 			player.ChangePosition2(player.position + newPosition);
 
 		}
@@ -281,7 +284,7 @@ void Update(float deltaTime) {
 		player.ChangePosition2(player.position + newPosition);
 	}
 
-	
+
 	it = monkeyIdolObjects.begin();
 
 	while (it != monkeyIdolObjects.end() && !monkeyIdolObjects.empty()) {
@@ -289,9 +292,9 @@ void Update(float deltaTime) {
 		it->RotateHorizontally(0.001 * deltaTime);
 		if (Intersect(player.collider, it->collider)) {
 			lightsShader.RemovePointLight(it->pointLightIndex);
-			monkeyIdolObjects.erase(it++);  
+			monkeyIdolObjects.erase(it++);
 			gatheredIdols += 1;
-			if(gatheredIdols >= spawnedIdols) WinCondition();
+			if (gatheredIdols >= spawnedIdols) WinCondition();
 		}
 		else {
 			++it;
@@ -334,9 +337,9 @@ bool mouseLocked = true;
 void ToggleMouseLock() {
 	mouseLocked = !mouseLocked;
 	if (mouseLocked) {
-		
+
 		SDL_SetRelativeMouseMode(SDL_TRUE);
-		
+
 	}
 	else {
 		SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -345,10 +348,25 @@ void ToggleMouseLock() {
 
 }
 
+
+
 int main(int ArgCount, char** Args) {
 
-	uint32_t WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP;
+	uint32_t WindowFlags = SDL_WINDOW_OPENGL;
+
 	SDL_Window* Window = SDL_CreateWindow("The Marvelous Mandrill Maze", WinX, WinY, WinWidth, WinHeight, WindowFlags);
+
+
+	if (fullScreenActive) {
+		WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP;
+		SDL_DisplayMode DM;
+		SDL_GetCurrentDisplayMode(0, &DM);
+		WinWidth = DM.w;
+		WinHeight = DM.h;
+		SDL_DestroyWindow(Window);
+		Window = SDL_CreateWindow("The Marvelous Mandrill Maze", WinX, WinY, WinWidth, WinHeight, WindowFlags);
+	}
+
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -401,6 +419,10 @@ int main(int ArgCount, char** Args) {
 	std::cout << "GL VERSION: " << glGetString(GL_VERSION) << std::endl;
 
 
+
+
+	std::cout << "START" << std::endl;
+
 	while (running) {
 
 		LAST = NOW;
@@ -409,35 +431,39 @@ int main(int ArgCount, char** Args) {
 		deltaTime = ((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
 		SDL_Event event;
+
+
+
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_KEYDOWN) {
 
 				switch (event.key.keysym.sym) {
-					
-					case SDLK_p:
-						ToggleMouseLock();
-						break;
-					case SDLK_ESCAPE:
-						running = 0;
-						break;
-					case SDLK_r:
-						ResetGameStage();
-						break;
-					case SDLK_i:
-						infiniteJumpMode = !infiniteJumpMode;
-						break;
-					case SDLK_m:
-						ToggleMute();
-					default:
-						break;
+
+				case SDLK_p:
+					ToggleMouseLock();
+					break;
+				case SDLK_ESCAPE:
+					running = 0;
+					std::cout << "EXIT" << std::endl;
+					break;
+				case SDLK_r:
+					ResetGameStage();
+					break;
+				case SDLK_i:
+					infiniteJumpMode = !infiniteJumpMode;
+					break;
+				case SDLK_m:
+					ToggleMute();
+				default:
+					break;
 				}
-				if((SDL_KeyCode)event.key.keysym.sym < KeyPressesSize)
-				keyPresses[(SDL_KeyCode)event.key.keysym.sym] = true;
+				if ((SDL_KeyCode)event.key.keysym.sym < KeyPressesSize)
+					keyPresses[(SDL_KeyCode)event.key.keysym.sym] = true;
 
 			}
 			if (event.type == SDL_KEYUP) {
 				if ((SDL_KeyCode)event.key.keysym.sym < KeyPressesSize)
-				keyPresses[(SDL_KeyCode)event.key.keysym.sym] = false;
+					keyPresses[(SDL_KeyCode)event.key.keysym.sym] = false;
 			}
 
 			if (event.type == SDL_QUIT) {
@@ -448,14 +474,14 @@ int main(int ArgCount, char** Args) {
 				player.camera.mouse(event.motion.xrel, event.motion.yrel);
 			}
 
-		
+
 		}
 
-		
+
 		float verticalModifier = 0.0f;
 		float horizontalModifier = 0.0f;
-		float speedModifier = 0.010f;
-		
+		float speedModifier = 0.010f * 1.5f;
+
 		//continuous-response keys
 		if (keyPresses[SDLK_w]) {
 			verticalModifier = 1.0f;
@@ -469,10 +495,10 @@ int main(int ArgCount, char** Args) {
 		if (keyPresses[SDLK_a]) {
 			horizontalModifier = -1.0f;
 		}
-	
+
 		horzVerticalMovement = glm::vec3(0.0f, 0.0f, 0.0f);
-	
-		if(verticalModifier != 0.0f || horizontalModifier != 0.0f) {
+
+		if (verticalModifier != 0.0f || horizontalModifier != 0.0f) {
 
 			glm::vec3 normForward(0.0f, 0.0f, 0.0f);
 			if (verticalModifier != 0.0f) {
@@ -485,7 +511,7 @@ int main(int ArgCount, char** Args) {
 			horzVerticalMovement = normalize(normForward * verticalModifier + player.camera.right * horizontalModifier);
 
 		}
-	
+
 		Update(deltaTime);
 
 		player.ChangePosition(player.position + gravityVelocity + horzVerticalMovement * speedModifier * (float)deltaTime);
@@ -494,7 +520,7 @@ int main(int ArgCount, char** Args) {
 			OnJumpKeyPressed();
 		}
 
-		frameCount+=1;
+		frameCount += 1;
 		if (SDL_GetTicks() - startTime >= 1000) {
 			startTime = SDL_GetTicks();
 			currentFPS = frameCount;
@@ -504,6 +530,7 @@ int main(int ArgCount, char** Args) {
 
 		SDL_GL_SwapWindow(Window);
 	}
+	SDL_Quit();
 
 	return 0;
 }
